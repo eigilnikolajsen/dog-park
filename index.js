@@ -13,7 +13,7 @@ let tools = {
     parking: false,
 }
 
-let boardElement = document.querySelector('#board_element')
+let boardElementMain = document.querySelector('#board_element_main')
 
 
 
@@ -40,8 +40,8 @@ const initBoard = () => {
             rowElement.append(colElement)
         })
 
-        // append the rows (that contain the cols) to the boardElement in the DOM
-        boardElement.append(rowElement)
+        // append the rows (that contain the cols) to the boardElementMain in the DOM
+        boardElementMain.append(rowElement)
 
     })
 
