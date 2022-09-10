@@ -1,5 +1,5 @@
-const boardGrid = 25
-document.documentElement.style.setProperty('--board-grid', boardGrid);
+const boardGrid = 20
+document.documentElement.style.setProperty('--board-grid', boardGrid)
 let board = []
 
 let tools = {
@@ -36,7 +36,7 @@ const initBoard = () => {
         row.forEach((col) => {
             let colElement = document.createElement('span')
             colElement.classList.add('board_col')
-            colElement.textContent = '0'
+            colElement.innerHTML = '<p class="board_content">0</p>'
             rowElement.append(colElement)
         })
 

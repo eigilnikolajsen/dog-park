@@ -1,7 +1,3 @@
-:root {
-    --board-grid: 0
-}
-
 html,
 *,
 body {
@@ -10,12 +6,37 @@ body {
     padding: 0;
 }
 
+:root {
+    --board-grid: 25;
+    --board-size: 100px;
+}
+
 #board_element {
-    display: grid;
-    grid-template-rows: repeat(var(--board-grid), 1fr);
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
 }
 
 .board_row {
-    display: grid;
-    grid-template-columns: repeat(var(--board-grid), 1fr);
+    display: block;
+    white-space: nowrap;
+}
+
+.board_col {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.board_content {
+    font-size: 25px;
+    width: var(--board-size);
+    height: var(--board-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid black;
+    border-right: 1px solid black;
 }
