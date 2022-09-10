@@ -1,4 +1,5 @@
 const boardGrid = 25
+document.documentElement.style.setProperty('--board-grid', boardGrid);
 let board = []
 
 let tools = {
@@ -12,6 +13,8 @@ let tools = {
     parking: false,
 }
 
+let boardElement = document.querySelector('#board_element')
+
 
 
 const initBoard = () => {
@@ -19,10 +22,28 @@ const initBoard = () => {
     // create board array
     for (let i = 0; i < boardGrid; i++) {
         board.push([])
-        for (let j = 0; j < boardGrid; j++) {
-            board[i].push(0)
-        }
+        for (let j = 0; j < boardGrid; j++) board[i].push(0)
     }
+
+    // run through the 2-dimensional board array and create the DOM version
+    board.forEach((row) => {
+
+        // create a span element for each row
+        let rowElement = document.createElement('span')
+        rowElement.classList.add('board_row')
+
+        // create a span element for each col inside each of the rows
+        row.forEach((col) => {
+            let colElement = document.createElement('span')
+            colElement.classList.add('board_col')
+            colElement.textContent = '0'
+            rowElement.append(colElement)
+        })
+
+        // append the rows (that contain the cols) to the boardElement in the DOM
+        boardElement.append(rowElement)
+
+    })
 
 }
 
