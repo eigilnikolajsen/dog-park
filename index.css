@@ -1,0 +1,21 @@
+:root {
+    --board-grid: 0
+}
+
+html,
+*,
+body {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+#board_element {
+    display: grid;
+    grid-template-rows: repeat(var(--board-grid), 1fr);
+}
+
+.board_row {
+    display: grid;
+    grid-template-columns: repeat(var(--board-grid), 1fr);
+}
