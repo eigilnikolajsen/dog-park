@@ -21,7 +21,7 @@ let tools = {
 let boardElementMain = document.querySelector('#board_element_main')
 
 // various
-let mousePosX, mousePosY, startMouseX, startMouseY, curTransX, curTransY, transPosX, transPosY, loopFrame
+let mousePosX, mousePosY, startMouseX, startMouseY, curTransX, curTransY, transPosX, transPosY, loopFrame, directions, dragging
 
 
 // run this at the start
@@ -127,66 +127,94 @@ const getPositionNum = (x, y) => {
 
 
 // run this loop when moving board
-//let gradeThreshold = Math.sin(Math.PI / 8) / Math.cos(Math.PI / 8)
 let moving = () => {
-    //console.log('moving')
 
-    transPosX = +curTransX + mousePosX - startMouseX
-    transPosY = +curTransY + mousePosY - startMouseY
+    // if you are dragging
 
+    if (dragging) {
 
-    let gradient = (startMouseY - mousePosY) / (mousePosX - startMouseX)
-    let gradeThreshold = 0.4142
+        transPosX = +curTransX + mousePosX - startMouseX
+        transPosY = +curTransY + mousePosY - startMouseY
 
-    //console.log(gradient)
+        // calc gradient, to check for directions, th = threshold
+        let gradient = (startMouseY - mousePosY) / (mousePosX - startMouseX)
+        let th = 0.4142
+        let thM = -0.4142
+        let th2 = 2.4142
+        let th2M = -2.4142
 
-    if (gradient < -2 - gradeThreshold || gradient > gradeThreshold + 2 || gradient == Infinity || gradient == -Infinity) {
-        console.log(`Area 1: going S / N. Gradient: ${gradient}`)
-        transPosX = +curTransX
-    }
-    if (gradient < gradeThreshold + 2 && gradient > gradeThreshold) {
-        console.log(`Area 2: going SW / NE. Gradient: ${gradient}`)
-        console.log(`transPosX: ${transPosX}. transPosY: ${transPosY}. `)
-        if (transPosX > transPosY) {
-            transPosY = +curTransX - mousePosX + startMouseX
-        } else {
-            transPosX = +curTransY - mousePosY + startMouseY
+        // check for the various directions, add to them, if you drag in that direction
+        if (directions.check) {
+            if (gradient < th2M || gradient > th2 || gradient == Infinity || gradient == -Infinity) {
+                directions.n_s += 1
+            }
+            if (gradient < th2 && gradient > th) {
+                directions.ne_sw += 1
+            }
+            if ((gradient < th && gradient >= 0) || (gradient <= 0 && gradient > thM)) {
+                directions.e_w += 1
+            }
+            if (gradient < thM && gradient > th2M) {
+                directions.nw_se += 1
+            }
         }
-    }
-    if ((gradient < gradeThreshold && gradient >= 0) || (gradient <= 0 && gradient > 0 - gradeThreshold)) {
-        console.log(`Area 3: going W / E. Gradient: ${gradient}`)
-        transPosY = +curTransY
-    }
-    if (gradient < 0 - gradeThreshold && gradient > -2 - gradeThreshold) {
-        console.log(`Area 4: going SE / NW. Gradient: ${gradient}`)
-        if (transPosX > transPosY) {
-            transPosY = transPosX
-        } else {
-            transPosX = transPosY
+
+        // set the directions, if dragged that direction for x frames or more
+        for (const direction in directions) {
+            if (directions[direction] >= 3) {
+                directions.dir = direction
+                directions.check = false
+            }
         }
-    }
 
-    if (transPosX > 0) {
-        transPosX = 0
-    }
-    if (transPosY > 0) {
-        transPosY = 0
-    }
-    if (transPosX < boardSize - boardSize * boardGrid) {
-        transPosX = boardSize - boardSize * boardGrid
-    }
-    if (transPosY < boardSize - boardSize * boardGrid) {
-        transPosY = boardSize - boardSize * boardGrid
-    }
+        // execute directions
+        switch (directions.dir) {
+            case 'n_s':
+                transPosX = +curTransX
+                break
 
+            case 'ne_sw':
+                if (transPosX > transPosY) {
+                    transPosY = +curTransX - mousePosX + startMouseX
+                } else {
+                    transPosX = +curTransY - mousePosY + startMouseY
+                }
+                break
 
-    boardElementMain.style.transform = `translate(${transPosX}px, ${transPosY}px)`
+            case 'e_w':
+                transPosY = +curTransY
+                break
 
+            case 'nw_se':
+                if (transPosX > transPosY) {
+                    transPosY = transPosX
+                } else {
+                    transPosX = transPosY
+                }
+                break
+        }
 
+        // stay inside the board
+        if (transPosX > 0) {
+            transPosX = 0
+        }
+        if (transPosY > 0) {
+            transPosY = 0
+        }
+        if (transPosX < boardSize - boardSize * boardGrid) {
+            transPosX = boardSize - boardSize * boardGrid
+        }
+        if (transPosY < boardSize - boardSize * boardGrid) {
+            transPosY = boardSize - boardSize * boardGrid
+        }
 
-    if (grapping) {
+        // finally actually transform the main board element
+        boardElementMain.style.transform = `translate(${transPosX}px, ${transPosY}px)`
+
+        // loop if still dragging
         requestAnimationFrame(moving)
     } else {
+        // else stop
         cancelAnimationFrame(loopFrame)
     }
 
@@ -194,17 +222,28 @@ let moving = () => {
 
 // when user starts touching the board
 let startOfTouch = (event, touch) => {
-    console.log('startOfTouch')
 
-    grapping = true
+    // you are dragging
+    dragging = true
 
+    // reset directions
+    directions = {
+        n_s: 0,
+        ne_sw: 0,
+        e_w: 0,
+        nw_se: 0,
+        dir: '',
+        check: true,
+    }
+
+    // set transition to .1 when dragging
     boardElementMain.style.transition = 'transform 0.1s cubic-bezier(.2, .8, .2, 1)'
 
+    // receive the current state of the transform before moving to new place
+    curTransX = boardElementMain.style.transform.split('(')[1].split('px')[0] // translate(10px, 20px) => 10
+    curTransY = boardElementMain.style.transform.split(' ')[1].split('px')[0] // translate(10px, 20px) => 20
 
-    curTransX = boardElementMain.style.transform.split('(')[1].split('px')[0]
-    curTransY = boardElementMain.style.transform.split(' ')[1].split('px')[0]
-
-
+    // set mouseStart positions
     if (touch) {
         mousePosX = event.touches[0].screenX
         mousePosY = event.touches[0].screenY
@@ -212,34 +251,37 @@ let startOfTouch = (event, touch) => {
     startMouseX = mousePosX
     startMouseY = mousePosY
 
+    // start the moving() loop
     loopFrame = requestAnimationFrame(moving)
+
 }
 
 // when user stops touching the board
 let endOfTouch = () => {
-    console.log('endOfTouch')
-    grapping = false
 
+    // no longer dragging (stops the moving() function)
+    dragging = false
+
+    // calc new position that snaps board to grid
     let newtransPosX = Math.round(transPosX / boardSize) * boardSize
     let newtransPosY = Math.round(transPosY / boardSize) * boardSize
 
+    // set transition to .4 when stopped
+    boardElementMain.style.transition = 'transform .4s cubic-bezier(.2, 1.5, .5, 1)'
 
-    console.log(transPosX)
-    console.log(newtransPosX)
-
+    // snap board to grid
     boardElementMain.style.transform = `translate(${newtransPosX}px, ${newtransPosY}px)`
 
-    boardElementMain.style.transition = 'transform .4s cubic-bezier(.2, 1.5, .5, 1)'
 }
 
 // eventlisteners
-boardElementMain.addEventListener('mousedown', (event) => startOfTouch(event, false))
-boardElementMain.addEventListener('touchstart', (event) => startOfTouch(event, true))
-
 let handleMousemove = (event) => {
     mousePosX = event.x || event.touches[0].screenX
     mousePosY = event.y || event.touches[0].screenY
 }
+
+boardElementMain.addEventListener('mousedown', (event) => startOfTouch(event, false))
+boardElementMain.addEventListener('touchstart', (event) => startOfTouch(event, true))
 
 boardElementMain.addEventListener('mousemove', handleMousemove);
 boardElementMain.addEventListener('touchmove', handleMousemove);
@@ -247,6 +289,8 @@ boardElementMain.addEventListener('touchmove', handleMousemove);
 boardElementMain.addEventListener('mouseup', endOfTouch)
 boardElementMain.addEventListener('touchend', endOfTouch)
 
+
+// build board
 initBoard()
 
 
