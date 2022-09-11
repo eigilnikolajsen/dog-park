@@ -23,47 +23,6 @@ let boardElementMain = document.querySelector('#board_element_main')
 // various
 let mousePosX, mousePosY, startMouseX, startMouseY, curTransX, curTransY, transPosX, transPosY, loopFrame, directions, dragging
 
-
-// run this at the start
-const initBoard = () => {
-
-    // set css variable to the js value
-    document.documentElement.style.setProperty('--board-grid', boardGrid)
-    document.documentElement.style.setProperty('--board-size', `${boardSize}px`)
-
-    // create board array
-    for (let i = 0; i < boardGrid; i++) {
-        board.push([])
-        for (let j = 0; j < boardGrid; j++) board[i].push(0)
-    }
-
-    // run through the 2-dimensional board array and create the DOM version
-    board.forEach((row) => {
-
-        // create a span element for each row
-        let rowElement = document.createElement('span')
-        rowElement.classList.add('board_row')
-
-        // create a span element for each col inside each of the rows
-        row.forEach((col) => {
-            let colElement = document.createElement('span')
-            colElement.classList.add('board_col')
-            colElement.innerHTML = '<p class="board_content">0</p>'
-            rowElement.append(colElement)
-        })
-
-        // append the rows (that contain the cols) to the boardElementMain in the DOM
-        boardElementMain.append(rowElement)
-
-    })
-
-}
-
-
-
-
-
-
 // takes a string like this one: '11000100' and makes an array
 // that can be interpreted by *INSERT FUNCTION*
 const numToPiece = (num) => {
@@ -103,6 +62,7 @@ const numToPiece = (num) => {
     return arr
 }
 
+
 // takes a position in the game array and turns it into a string: '11000100'
 // that can be used by numToPiece() to get an array with the correct character
 const getPositionNum = (x, y) => {
@@ -123,7 +83,6 @@ const getPositionNum = (x, y) => {
     return str
 
 }
-
 
 
 // run this loop when moving board
@@ -161,7 +120,7 @@ let moving = () => {
 
         // set the directions, if dragged that direction for x frames or more
         for (const direction in directions) {
-            if (directions[direction] >= 3) {
+            if (directions[direction] >= 5) {
                 directions.dir = direction
                 directions.check = false
             }
@@ -256,6 +215,7 @@ let startOfTouch = (event, touch) => {
 
 }
 
+
 // when user stops touching the board
 let endOfTouch = () => {
 
@@ -274,6 +234,7 @@ let endOfTouch = () => {
 
 }
 
+
 // eventlisteners
 let handleMousemove = (event) => {
     mousePosX = event.x || event.touches[0].screenX
@@ -290,7 +251,41 @@ boardElementMain.addEventListener('mouseup', endOfTouch)
 boardElementMain.addEventListener('touchend', endOfTouch)
 
 
-// build board
+// run this at the start
+const initBoard = () => {
+
+        // set css variable to the js value
+        document.documentElement.style.setProperty('--board-grid', boardGrid)
+        document.documentElement.style.setProperty('--board-size', `${boardSize}px`)
+
+        // create board array
+        for (let i = 0; i < boardGrid; i++) {
+            board.push([])
+            for (let j = 0; j < boardGrid; j++) board[i].push(0)
+        }
+
+        // run through the 2-dimensional board array and create the DOM version
+        board.forEach((row) => {
+
+            // create a span element for each row
+            let rowElement = document.createElement('span')
+            rowElement.classList.add('board_row')
+
+            // create a span element for each col inside each of the rows
+            row.forEach((col) => {
+                let colElement = document.createElement('span')
+                colElement.classList.add('board_col')
+                colElement.innerHTML = '<p class="board_content">0</p>'
+                rowElement.append(colElement)
+            })
+
+            // append the rows (that contain the cols) to the boardElementMain in the DOM
+            boardElementMain.append(rowElement)
+
+        })
+
+    }
+    // build board
 initBoard()
 
 
