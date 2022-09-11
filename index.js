@@ -148,9 +148,9 @@ let moving = () => {
         console.log(`Area 2: going SW / NE. Gradient: ${gradient}`)
         console.log(`transPosX: ${transPosX}. transPosY: ${transPosY}. `)
         if (transPosX > transPosY) {
-            transPosY = transPosX
+            transPosY = +curTransX - mousePosX + startMouseX
         } else {
-            transPosX = transPosY
+            transPosX = +curTransY - mousePosY + startMouseY
         }
     }
     if ((gradient < gradeThreshold && gradient >= 0) || (gradient <= 0 && gradient > 0 - gradeThreshold)) {
