@@ -21,7 +21,14 @@ let tools = {
 let boardElementMain = document.querySelector('#board_element_main')
 
 // various
-let mousePosX, mousePosY, startMouseX, startMouseY, curTransX, curTransY, transPosX, transPosY, loopFrame, directions, dragging
+let mousePosX, mousePosY,
+    startMouseX, startMouseY,
+    curTransX, curTransY,
+    transPosX, transPosY,
+    loopFrame,
+    directions,
+    dragging
+
 
 // takes a string like this one: '11000100' and makes an array
 // that can be interpreted by *INSERT FUNCTION*
@@ -92,28 +99,25 @@ let moving = () => {
 
     if (dragging) {
 
-        transPosX = +curTransX + mousePosX - startMouseX
-        transPosY = +curTransY + mousePosY - startMouseY
-
-        // calc gradient, to check for directions, th = threshold
+        // calc gradient to check for the direction dragged, th = threshold
         let gradient = (startMouseY - mousePosY) / (mousePosX - startMouseX)
         let th = 0.4142
-        let thM = -0.4142
+        let thN = -0.4142
         let th2 = 2.4142
-        let th2M = -2.4142
+        let th2N = -2.4142
 
         // check for the various directions, add to them, if you drag in that direction
         if (directions.check) {
-            if (gradient < th2M || gradient > th2 || gradient == Infinity || gradient == -Infinity) {
+            if (gradient < th2N || gradient > th2 || gradient == Infinity || gradient == -Infinity) {
                 directions.n_s += 1
             }
             if (gradient < th2 && gradient > th) {
                 directions.ne_sw += 1
             }
-            if ((gradient < th && gradient >= 0) || (gradient <= 0 && gradient > thM)) {
+            if ((gradient < th && gradient >= 0) || (gradient <= 0 && gradient > thN)) {
                 directions.e_w += 1
             }
-            if (gradient < thM && gradient > th2M) {
+            if (gradient < thN && gradient > th2N) {
                 directions.nw_se += 1
             }
         }
@@ -125,6 +129,10 @@ let moving = () => {
                 directions.check = false
             }
         }
+
+        // default moves directions freely
+        transPosX = +curTransX + mousePosX - startMouseX
+        transPosY = +curTransY + mousePosY - startMouseY
 
         // execute directions
         switch (directions.dir) {
@@ -146,9 +154,9 @@ let moving = () => {
 
             case 'nw_se':
                 if (transPosX > transPosY) {
-                    transPosY = transPosX
+                    transPosY = +curTransX + mousePosX - startMouseX
                 } else {
-                    transPosX = transPosY
+                    transPosX = +curTransY + mousePosY - startMouseY
                 }
                 break
         }
@@ -223,14 +231,14 @@ let endOfTouch = () => {
     dragging = false
 
     // calc new position that snaps board to grid
-    let newtransPosX = Math.round(transPosX / boardSize) * boardSize
-    let newtransPosY = Math.round(transPosY / boardSize) * boardSize
+    let newTransPosX = Math.round(transPosX / boardSize) * boardSize
+    let newTransPosY = Math.round(transPosY / boardSize) * boardSize
 
     // set transition to .4 when stopped
     boardElementMain.style.transition = 'transform .4s cubic-bezier(.2, 1.5, .5, 1)'
 
     // snap board to grid
-    boardElementMain.style.transform = `translate(${newtransPosX}px, ${newtransPosY}px)`
+    boardElementMain.style.transform = `translate(${newTransPosX}px, ${newTransPosY}px)`
 
 }
 
