@@ -1,5 +1,6 @@
 // global variables
 const boardGrid = 20
+const boardSize = 100
 
 // arrays
 let board = []
@@ -20,7 +21,7 @@ let tools = {
 let boardElementMain = document.querySelector('#board_element_main')
 
 // various
-let mousePosX, mousePosY, startMouseX, startMouseY, curTransX, curTransY, loopFrame
+let mousePosX, mousePosY, startMouseX, startMouseY, curTransX, curTransY, transPosX, transPosY, loopFrame
 
 
 // run this at the start
@@ -28,6 +29,7 @@ const initBoard = () => {
 
     // set css variable to the js value
     document.documentElement.style.setProperty('--board-grid', boardGrid)
+    document.documentElement.style.setProperty('--board-size', `${boardSize}px`)
 
     // create board array
     for (let i = 0; i < boardGrid; i++) {
@@ -125,13 +127,62 @@ const getPositionNum = (x, y) => {
 
 
 // run this loop when moving board
+//let gradeThreshold = Math.sin(Math.PI / 8) / Math.cos(Math.PI / 8)
 let moving = () => {
-    console.log('moving')
+    //console.log('moving')
 
-    let transPosX = +curTransX + mousePosX - startMouseX
-    let transPosY = +curTransY + mousePosY - startMouseY
+    transPosX = +curTransX + mousePosX - startMouseX
+    transPosY = +curTransY + mousePosY - startMouseY
+
+
+    let gradient = (startMouseY - mousePosY) / (mousePosX - startMouseX)
+    let gradeThreshold = 0.4142
+
+    //console.log(gradient)
+
+    if (gradient < -2 - gradeThreshold || gradient > gradeThreshold + 2 || gradient == Infinity || gradient == -Infinity) {
+        console.log(`Area 1: going S / N. Gradient: ${gradient}`)
+        transPosX = +curTransX
+    }
+    if (gradient < gradeThreshold + 2 && gradient > gradeThreshold) {
+        console.log(`Area 2: going SW / NE. Gradient: ${gradient}`)
+        console.log(`transPosX: ${transPosX}. transPosY: ${transPosY}. `)
+        if (transPosX > transPosY) {
+            transPosY = transPosX
+        } else {
+            transPosX = transPosY
+        }
+    }
+    if ((gradient < gradeThreshold && gradient >= 0) || (gradient <= 0 && gradient > 0 - gradeThreshold)) {
+        console.log(`Area 3: going W / E. Gradient: ${gradient}`)
+        transPosY = +curTransY
+    }
+    if (gradient < 0 - gradeThreshold && gradient > -2 - gradeThreshold) {
+        console.log(`Area 4: going SE / NW. Gradient: ${gradient}`)
+        if (transPosX > transPosY) {
+            transPosY = transPosX
+        } else {
+            transPosX = transPosY
+        }
+    }
+
+    if (transPosX > 0) {
+        transPosX = 0
+    }
+    if (transPosY > 0) {
+        transPosY = 0
+    }
+    if (transPosX < boardSize - boardSize * boardGrid) {
+        transPosX = boardSize - boardSize * boardGrid
+    }
+    if (transPosY < boardSize - boardSize * boardGrid) {
+        transPosY = boardSize - boardSize * boardGrid
+    }
+
 
     boardElementMain.style.transform = `translate(${transPosX}px, ${transPosY}px)`
+
+
 
     if (grapping) {
         requestAnimationFrame(moving)
@@ -147,12 +198,11 @@ let startOfTouch = (event, touch) => {
 
     grapping = true
 
+    boardElementMain.style.transition = 'transform 0.1s cubic-bezier(.2, .8, .2, 1)'
+
 
     curTransX = boardElementMain.style.transform.split('(')[1].split('px')[0]
     curTransY = boardElementMain.style.transform.split(' ')[1].split('px')[0]
-
-    console.log(curTransX)
-    console.log(curTransY)
 
 
     if (touch) {
@@ -169,6 +219,17 @@ let startOfTouch = (event, touch) => {
 let endOfTouch = () => {
     console.log('endOfTouch')
     grapping = false
+
+    let newtransPosX = Math.round(transPosX / boardSize) * boardSize
+    let newtransPosY = Math.round(transPosY / boardSize) * boardSize
+
+
+    console.log(transPosX)
+    console.log(newtransPosX)
+
+    boardElementMain.style.transform = `translate(${newtransPosX}px, ${newtransPosY}px)`
+
+    boardElementMain.style.transition = 'transform .4s cubic-bezier(.2, 1.5, .5, 1)'
 }
 
 // eventlisteners
