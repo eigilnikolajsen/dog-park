@@ -25,7 +25,7 @@ let mousePosX, mousePosY,
     startMouseX, startMouseY,
     curTransX, curTransY,
     transPosX, transPosY,
-    loopFrame,
+    movingLoop,
     directions,
     dragging
 
@@ -180,11 +180,21 @@ let moving = () => {
         // finally actually perform the transform on main board element
         boardElementMain.style.transform = `translate(${transPosX}px, ${transPosY}px)`
 
+        // change the square WIP
+        let squareX = Math.round(transPosX / boardSize) * -1
+        let squareY = Math.round(transPosY / boardSize) * -1
+        board[squareX][squareY] = 1
+        let squareSelector = `.board_row:nth-child(${squareY + 1}) .board_col:nth-child(${squareX + 1}) .board_content`
+        let squareDOM = boardElementMain.querySelector(squareSelector)
+        squareDOM.textContent = '1'
+
+        console.log(`squareX: ${squareX}\nsquareY: ${squareY}`)
+
         // loop if still dragging
         requestAnimationFrame(moving)
     } else {
         // else stop
-        cancelAnimationFrame(loopFrame)
+        cancelAnimationFrame(movingLoop)
     }
 
 }
@@ -223,7 +233,7 @@ let startOfTouch = (event, touch) => {
     startMouseY = mousePosY
 
     // start the moving() loop
-    loopFrame = requestAnimationFrame(moving)
+    movingLoop = requestAnimationFrame(moving)
 
 }
 
