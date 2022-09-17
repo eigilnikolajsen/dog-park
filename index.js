@@ -96,67 +96,69 @@ const getPositionNum = (x, y) => {
 let moving = () => {
 
     // if you are dragging
-
     if (dragging) {
 
         // calc gradient to check for the direction dragged, th = threshold
         let gradient = (startMouseY - mousePosY) / (mousePosX - startMouseX)
-        let th = 0.4142
-        let thN = -0.4142
-        let th2 = 2.4142
+        let th1P = 0.4142
+        let th1N = -0.4142
+        let th2P = 2.4142
         let th2N = -2.4142
+
+        let gradientFramesToLock = 5
 
         // check for the various directions, add to them, if you drag in that direction
         if (directions.check) {
-            if (gradient < th2N || gradient > th2 || gradient == Infinity || gradient == -Infinity) {
+            if (gradient < th2N || gradient > th2P || gradient == Infinity || gradient == -Infinity) {
                 directions.n_s += 1
             }
-            if (gradient < th2 && gradient > th) {
+            if (gradient < th2P && gradient > th1P) {
                 directions.ne_sw += 1
             }
-            if ((gradient < th && gradient >= 0) || (gradient <= 0 && gradient > thN)) {
+            if ((gradient < th1P && gradient >= 0) || (gradient <= 0 && gradient > th1N)) {
                 directions.e_w += 1
             }
-            if (gradient < thN && gradient > th2N) {
+            if (gradient < th1N && gradient > th2N) {
                 directions.nw_se += 1
             }
         }
 
         // set the directions, if dragged that direction for x frames or more
         for (const direction in directions) {
-            if (directions[direction] >= 5) {
+            if (directions[direction] >= gradientFramesToLock) {
                 directions.dir = direction
                 directions.check = false
             }
         }
 
         // default moves directions freely
-        transPosX = +curTransX + mousePosX - startMouseX
-        transPosY = +curTransY + mousePosY - startMouseY
+        transPosX = curTransX + mousePosX - startMouseX
+        transPosY = curTransY + mousePosY - startMouseY
 
-        // execute directions
+        // overrite default directions depending on direction
         switch (directions.dir) {
-            case 'n_s':
-                transPosX = +curTransX
+
+            case 'n_s': // dir: north/south; don't translate horizontally
+                transPosX = curTransX
                 break
 
-            case 'ne_sw':
+            case 'ne_sw': // dir: northeast/southwest; set Y to X if X is larger than Y else set X to Y - and reverse
                 if (transPosX > transPosY) {
-                    transPosY = +curTransX - mousePosX + startMouseX
+                    transPosY = curTransY - mousePosX + startMouseX
                 } else {
-                    transPosX = +curTransY - mousePosY + startMouseY
+                    transPosX = curTransX - mousePosY + startMouseY
                 }
                 break
 
-            case 'e_w':
-                transPosY = +curTransY
+            case 'e_w': // dir: east/west; don't translate vertically
+                transPosY = curTransY
                 break
 
-            case 'nw_se':
+            case 'nw_se': // dir: northwest/southeast; set Y to X if X is larger than Y else set X to Y
                 if (transPosX > transPosY) {
-                    transPosY = +curTransX + mousePosX - startMouseX
+                    transPosY = curTransY + mousePosX - startMouseX
                 } else {
-                    transPosX = +curTransY + mousePosY - startMouseY
+                    transPosX = curTransX + mousePosY - startMouseY
                 }
                 break
         }
@@ -175,7 +177,7 @@ let moving = () => {
             transPosY = boardSize - boardSize * boardGrid
         }
 
-        // finally actually transform the main board element
+        // finally actually perform the transform on main board element
         boardElementMain.style.transform = `translate(${transPosX}px, ${transPosY}px)`
 
         // loop if still dragging
@@ -189,6 +191,8 @@ let moving = () => {
 
 // when user starts touching the board
 let startOfTouch = (event, touch) => {
+
+    console.log('startOfTouch')
 
     // you are dragging
     dragging = true
@@ -207,8 +211,8 @@ let startOfTouch = (event, touch) => {
     boardElementMain.style.transition = 'transform 0.1s cubic-bezier(.2, .8, .2, 1)'
 
     // receive the current state of the transform before moving to new place
-    curTransX = boardElementMain.style.transform.split('(')[1].split('px')[0] // translate(10px, 20px) => 10
-    curTransY = boardElementMain.style.transform.split(' ')[1].split('px')[0] // translate(10px, 20px) => 20
+    curTransX = +boardElementMain.style.transform.split('(')[1].split('px')[0] // translate(10px, 20px) => 10
+    curTransY = +boardElementMain.style.transform.split(' ')[1].split('px')[0] // translate(10px, 20px) => 20
 
     // set mouseStart positions
     if (touch) {
@@ -226,6 +230,8 @@ let startOfTouch = (event, touch) => {
 
 // when user stops touching the board
 let endOfTouch = () => {
+
+    console.log('endOfTouch')
 
     // no longer dragging (stops the moving() function)
     dragging = false
@@ -262,38 +268,39 @@ boardElementMain.addEventListener('touchend', endOfTouch)
 // run this at the start
 const initBoard = () => {
 
-        // set css variable to the js value
-        document.documentElement.style.setProperty('--board-grid', boardGrid)
-        document.documentElement.style.setProperty('--board-size', `${boardSize}px`)
+    // set css variable to the js value
+    document.documentElement.style.setProperty('--board-grid', boardGrid)
+    document.documentElement.style.setProperty('--board-size', `${boardSize}px`)
 
-        // create board array
-        for (let i = 0; i < boardGrid; i++) {
-            board.push([])
-            for (let j = 0; j < boardGrid; j++) board[i].push(0)
-        }
+    // create board array
+    for (let i = 0; i < boardGrid; i++) {
+        board.push([])
+        for (let j = 0; j < boardGrid; j++) board[i].push(0)
+    }
 
-        // run through the 2-dimensional board array and create the DOM version
-        board.forEach((row) => {
+    // run through the 2-dimensional board array and create the DOM version
+    board.forEach((row) => {
 
-            // create a span element for each row
-            let rowElement = document.createElement('span')
-            rowElement.classList.add('board_row')
+        // create a span element for each row
+        let rowElement = document.createElement('span')
+        rowElement.classList.add('board_row')
 
-            // create a span element for each col inside each of the rows
-            row.forEach((col) => {
-                let colElement = document.createElement('span')
-                colElement.classList.add('board_col')
-                colElement.innerHTML = '<p class="board_content">0</p>'
-                rowElement.append(colElement)
-            })
-
-            // append the rows (that contain the cols) to the boardElementMain in the DOM
-            boardElementMain.append(rowElement)
-
+        // create a span element for each col inside each of the rows
+        row.forEach((col) => {
+            let colElement = document.createElement('span')
+            colElement.classList.add('board_col')
+            colElement.innerHTML = '<p class="board_content">0</p>'
+            rowElement.append(colElement)
         })
 
-    }
-    // build board
+        // append the rows (that contain the cols) to the boardElementMain in the DOM
+        boardElementMain.append(rowElement)
+
+    })
+
+}
+
+// build board
 initBoard()
 
 
