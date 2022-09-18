@@ -55,7 +55,7 @@ const numToPiece = (num) => {
                 }
             }
 
-            // even = is i even?
+            // where does the i sit
             position = i
 
             // push to arr with type, even and deg
@@ -69,6 +69,14 @@ const numToPiece = (num) => {
     return arr
 }
 
+const boardAtPos = (x, y) => {
+    if (((x >= 0) && (x < board.length)) && ((y >= 0) && (y < board[0].length))) {
+        return board[x][y]
+    } else {
+        return 0
+    }
+}
+
 
 // takes a position in the game array and turns it into a string: '11000100'
 // that can be used by numToPiece() to get an array with the correct character
@@ -78,14 +86,14 @@ const getPositionNum = (x, y) => {
     let str = ''
 
     // add to the string depending on where the other pieces lie
-    board[x - 1][y + 0] == '1' ? str += '1' : str += '0'
-    board[x - 1][y + 1] == '1' ? str += '1' : str += '0'
-    board[x + 0][y + 1] == '1' ? str += '1' : str += '0'
-    board[x + 1][y + 1] == '1' ? str += '1' : str += '0'
-    board[x + 1][y + 0] == '1' ? str += '1' : str += '0'
-    board[x + 1][y - 1] == '1' ? str += '1' : str += '0'
-    board[x + 0][y - 1] == '1' ? str += '1' : str += '0'
-    board[x - 1][y - 1] == '1' ? str += '1' : str += '0'
+    boardAtPos(x - 1, y + 0) == 1 ? str += '1' : str += '0'
+    boardAtPos(x - 1, y + 1) == 1 ? str += '1' : str += '0'
+    boardAtPos(x + 0, y + 1) == 1 ? str += '1' : str += '0'
+    boardAtPos(x + 1, y + 1) == 1 ? str += '1' : str += '0'
+    boardAtPos(x + 1, y + 0) == 1 ? str += '1' : str += '0'
+    boardAtPos(x + 1, y - 1) == 1 ? str += '1' : str += '0'
+    boardAtPos(x + 0, y - 1) == 1 ? str += '1' : str += '0'
+    boardAtPos(x - 1, y - 1) == 1 ? str += '1' : str += '0'
 
     return str
 
@@ -180,15 +188,28 @@ let moving = () => {
         // finally actually perform the transform on main board element
         boardElementMain.style.transform = `translate(${transPosX}px, ${transPosY}px)`
 
-        // change the square WIP
-        let squareX = Math.round(transPosX / boardSize) * -1
-        let squareY = Math.round(transPosY / boardSize) * -1
-        board[squareX][squareY] = 1
-        let squareSelector = `.board_row:nth-child(${squareY + 1}) .board_col:nth-child(${squareX + 1}) .board_content`
-        let squareDOM = boardElementMain.querySelector(squareSelector)
-        squareDOM.textContent = '1'
+        // snapping precision: 0.5 is no precision, 0 is 100% precision
+        let snapPrec = 0.35
+        let squareX, squareY
+        let restX = Math.abs(transPosX / boardSize - Math.round(transPosX / boardSize))
+        let restY = Math.abs(transPosY / boardSize - Math.round(transPosY / boardSize))
 
-        console.log(`squareX: ${squareX}\nsquareY: ${squareY}`)
+        if ((restX < snapPrec || restX > 1 - snapPrec) && (restY < snapPrec || restY > 1 - snapPrec)) {
+            squareX = -Math.round(transPosX / boardSize)
+            squareY = -Math.round(transPosY / boardSize)
+
+            board[squareX][squareY] = 1
+            let squareDOM = boardElementMain.querySelector(`.board_row:nth-child(${squareY + 1}) .board_col:nth-child(${squareX + 1})`)
+            squareDOM.innerHTML = ''
+            let squareContent = document.createElement('p')
+            squareContent.classList.add('board_content')
+            squareContent.textContent = '1'
+            squareDOM.append(squareContent)
+
+            //console.log(`squareX: ${squareX}\nsquareY: ${squareY}`)
+            console.log(getPositionNum(squareX, squareY))
+                //console.log(boardAtPos(squareX - 1, squareY + 1))
+        }
 
         // loop if still dragging
         requestAnimationFrame(moving)
@@ -198,6 +219,9 @@ let moving = () => {
     }
 
 }
+
+let str = String.fromCharCode(48)
+console.log(str)
 
 // when user starts touching the board
 let startOfTouch = (event, touch) => {
@@ -251,7 +275,7 @@ let endOfTouch = () => {
     let newTransPosY = Math.round(transPosY / boardSize) * boardSize
 
     // set transition to .4 when stopped
-    boardElementMain.style.transition = 'transform .4s cubic-bezier(.2, 1.5, .5, 1)'
+    boardElementMain.style.transition = 'transform .4s cubic-bezier(.2, 1.3, .5, 1)'
 
     // snap board to grid
     boardElementMain.style.transform = `translate(${newTransPosX}px, ${newTransPosY}px)`
