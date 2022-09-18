@@ -25,57 +25,11 @@ let mousePosX, mousePosY,
     startMouseX, startMouseY,
     curTransX, curTransY,
     transPosX, transPosY,
+    curSquareX, curSquareY,
+    prevSquareX, prevSquareY,
     movingLoop,
     directions,
     dragging
-
-
-// takes a string like this one: '11000100' and makes an array
-// that can be interpreted by *INSERT FUNCTION*
-const numToPiece = (num) => {
-
-    // create empty array
-    let arr = []
-
-    // split the string and run through each character
-    let numArr = num.split('')
-    numArr.forEach((el, i) => {
-
-        // if the character is a 1
-        if (el == '1') {
-
-            // declare variables type (type of piece), position (in what position is the piece)
-            let type, position
-
-            // type = number of 0s until next 1
-            for (let j = 0; j < numArr.length; j++) {
-                if (numArr[(j + i + 1) % numArr.length] == '1') {
-                    type = j
-                    break
-                }
-            }
-
-            // where does the i sit
-            position = i
-
-            // push to arr with type, even and deg
-            arr.push([type, position])
-
-        }
-
-    })
-
-    // return the array
-    return arr
-}
-
-const boardAtPos = (x, y) => {
-    if (((x >= 0) && (x < board.length)) && ((y >= 0) && (y < board[0].length))) {
-        return board[x][y]
-    } else {
-        return 0
-    }
-}
 
 
 // takes a position in the game array and turns it into a string: '11000100'
@@ -97,6 +51,76 @@ const getPositionNum = (x, y) => {
 
     return str
 
+}
+
+
+// takes a string like this one: '11000100' and makes an array
+// that can be interpreted by *INSERT FUNCTION*
+const numToPiece = (num) => {
+
+    // create empty array
+    let arr = []
+
+    // split the string and run through each character
+    let numArr = num.split('')
+    numArr.forEach((el, i) => {
+
+        // if the character is a 1
+        if (el == '1') {
+
+            // declare variables type (type of piece), rotation (in what rotation is the piece)
+            let type, rotation
+
+            let unicodeStart = 72
+
+            // type = number of 0s until next 1
+            for (let j = 0; j < numArr.length; j++) {
+                if (numArr[(j + i + 1) % numArr.length] == '1') {
+                    type = j
+                    break
+                }
+            }
+
+            // if i is even vs. if i is odd
+            if (i % 2 == 0) {
+                type = String.fromCharCode(type + unicodeStart)
+                rotation = i * 45
+            } else {
+                type = String.fromCharCode(type + unicodeStart + 8)
+                rotation = i * 45 - 45
+            }
+
+            // where does the i sit
+            rotation = i
+
+            // push to arr with type, even and deg
+            arr.push([type, rotation])
+
+        }
+
+    })
+
+    // return the array
+    return arr
+}
+
+
+// returns and array of 2 elements:
+// 0th index is the unicode code for the piece, 1st index is the rotation in degrees
+const getUnicodeString = (arr) => {
+    arr.forEach((el) => {
+
+    })
+}
+
+
+// check if in bounds, if true return value at indices else return 0
+const boardAtPos = (x, y) => {
+    if (((x >= 0) && (x < board.length)) && ((y >= 0) && (y < board[0].length))) {
+        return board[x][y]
+    } else {
+        return 0
+    }
 }
 
 
@@ -190,26 +214,20 @@ let moving = () => {
 
         // snapping precision: 0.5 is no precision, 0 is 100% precision
         let snapPrec = 0.35
-        let squareX, squareY
         let restX = Math.abs(transPosX / boardSize - Math.round(transPosX / boardSize))
         let restY = Math.abs(transPosY / boardSize - Math.round(transPosY / boardSize))
 
         if ((restX < snapPrec || restX > 1 - snapPrec) && (restY < snapPrec || restY > 1 - snapPrec)) {
-            squareX = -Math.round(transPosX / boardSize)
-            squareY = -Math.round(transPosY / boardSize)
-
-            board[squareX][squareY] = 1
-            let squareDOM = boardElementMain.querySelector(`.board_row:nth-child(${squareY + 1}) .board_col:nth-child(${squareX + 1})`)
-            squareDOM.innerHTML = ''
-            let squareContent = document.createElement('p')
-            squareContent.classList.add('board_content')
-            squareContent.textContent = '1'
-            squareDOM.append(squareContent)
-
-            //console.log(`squareX: ${squareX}\nsquareY: ${squareY}`)
-            console.log(getPositionNum(squareX, squareY))
-                //console.log(boardAtPos(squareX - 1, squareY + 1))
+            curSquareX = -Math.round(transPosX / boardSize)
+            curSquareY = -Math.round(transPosY / boardSize)
         }
+
+        if (prevSquareX != curSquareX || prevSquareY != curSquareY) {
+            updateBoard(curSquareX, curSquareY, prevSquareX, prevSquareY)
+        }
+
+        prevSquareX = curSquareX
+        prevSquareY = curSquareY
 
         // loop if still dragging
         requestAnimationFrame(moving)
@@ -218,6 +236,25 @@ let moving = () => {
         cancelAnimationFrame(movingLoop)
     }
 
+}
+
+// takes the current and past position and updates both the visual and the js board
+const updateBoard = (x, y, px, py) => {
+    console.log('update board')
+    console.log(`x: ${x}\ny: ${y}\npx: ${px}\npy: ${py}`)
+
+    board[curSquareX][curSquareY] = 1
+    let squareDOM = boardElementMain.querySelector(`.board_row:nth-child(${curSquareY + 1}) .board_col:nth-child(${curSquareX + 1})`)
+    squareDOM.innerHTML = ''
+    let squareContent = document.createElement('p')
+    squareContent.classList.add('board_content')
+    squareContent.textContent = '1'
+    squareDOM.append(squareContent)
+
+    //console.log(`curSquareX: ${curSquareX}\ncurSquareY: ${curSquareY}`)
+    console.log(`current position: ${numToPiece(getPositionNum(x, y))}`)
+    console.log(`previous position: ${numToPiece(getPositionNum(px, py))}`)
+        //console.log(boardAtPos(curSquareX - 1, curSquareY + 1))
 }
 
 let str = String.fromCharCode(48)
