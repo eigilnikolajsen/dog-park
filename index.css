@@ -1,3 +1,11 @@
+@font-face {
+    font-family: 'danmarks-hundeskove';
+    src: url('font/danmarkshundeskove-Regular.woff2') format('woff2'), url('font/danmarkshundeskove-Regular.otf') format('opentype');
+    font-style: normal;
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
+}
+
 *,
 body {
     box-sizing: border-box;
@@ -6,8 +14,8 @@ body {
 }
 
 :root {
-    --board-grid: 25;
-    --board-size: 100px;
+    --board-grid: 'init';
+    --board-size: 'init';
 }
 
 
@@ -47,23 +55,27 @@ body {
 }
 
 .board_row {
-    display: block;
+    display: flex;
     white-space: nowrap;
 }
 
 .board_col {
-    display: inline-block;
+    display: grid;
     white-space: nowrap;
 }
 
 .board_content {
     border-bottom: 1px solid black;
     border-right: 1px solid black;
+    grid-row: 1;
+    grid-column: 1;
+    font-family: 'danmarks-hundeskove';
+    font-size: var(--board-size);
+    font-size: 50px;
 }
 
 .board_content,
 #board_element_center {
-    font-size: 25px;
     width: var(--board-size);
     height: var(--board-size);
     display: flex;
