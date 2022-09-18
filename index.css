@@ -71,7 +71,7 @@ body {
     grid-column: 1;
     font-family: 'danmarks-hundeskove';
     font-size: var(--board-size);
-    font-size: 50px;
+    font-size: 100px;
 }
 
 .board_content,

@@ -26,7 +26,8 @@ let mousePosX, mousePosY,
     curTransX, curTransY,
     transPosX, transPosY,
     curSquareX, curSquareY,
-    prevSquareX, prevSquareY,
+    prevSquareX = 0,
+    prevSquareY = 0,
     movingLoop,
     directions,
     dragging
@@ -40,17 +41,35 @@ const getPositionNum = (x, y) => {
     let str = ''
 
     // add to the string depending on where the other pieces lie
-    boardAtPos(x - 1, y + 0) == 1 ? str += '1' : str += '0'
-    boardAtPos(x - 1, y + 1) == 1 ? str += '1' : str += '0'
-    boardAtPos(x + 0, y + 1) == 1 ? str += '1' : str += '0'
-    boardAtPos(x + 1, y + 1) == 1 ? str += '1' : str += '0'
-    boardAtPos(x + 1, y + 0) == 1 ? str += '1' : str += '0'
-    boardAtPos(x + 1, y - 1) == 1 ? str += '1' : str += '0'
+    // boardAtPos(x - 1, y + 0) == 1 ? str += '1' : str += '0'
+    // boardAtPos(x - 1, y + 1) == 1 ? str += '1' : str += '0'
+    // boardAtPos(x + 0, y + 1) == 1 ? str += '1' : str += '0'
+    // boardAtPos(x + 1, y + 1) == 1 ? str += '1' : str += '0'
+    // boardAtPos(x + 1, y + 0) == 1 ? str += '1' : str += '0'
+    // boardAtPos(x + 1, y - 1) == 1 ? str += '1' : str += '0'
+    // boardAtPos(x + 0, y - 1) == 1 ? str += '1' : str += '0'
+    // boardAtPos(x - 1, y - 1) == 1 ? str += '1' : str += '0'
     boardAtPos(x + 0, y - 1) == 1 ? str += '1' : str += '0'
+    boardAtPos(x + 1, y - 1) == 1 ? str += '1' : str += '0'
+    boardAtPos(x + 1, y + 0) == 1 ? str += '1' : str += '0'
+    boardAtPos(x + 1, y + 1) == 1 ? str += '1' : str += '0'
+    boardAtPos(x + 0, y + 1) == 1 ? str += '1' : str += '0'
+    boardAtPos(x - 1, y + 1) == 1 ? str += '1' : str += '0'
+    boardAtPos(x - 1, y + 0) == 1 ? str += '1' : str += '0'
     boardAtPos(x - 1, y - 1) == 1 ? str += '1' : str += '0'
 
     return str
 
+}
+
+
+// check if in bounds, if true return value at indices else return 0
+const boardAtPos = (x, y) => {
+    if (((x >= 0) && (x < board.length)) && ((y >= 0) && (y < board[0].length))) {
+        return board[x][y]
+    } else {
+        return 0
+    }
 }
 
 
@@ -65,13 +84,13 @@ const numToPiece = (num) => {
     let numArr = num.split('')
     numArr.forEach((el, i) => {
 
+        let unicodeStart = 72
+
         // if the character is a 1
         if (el == '1') {
 
             // declare variables type (type of piece), rotation (in what rotation is the piece)
             let type, rotation
-
-            let unicodeStart = 72
 
             // type = number of 0s until next 1
             for (let j = 0; j < numArr.length; j++) {
@@ -83,15 +102,12 @@ const numToPiece = (num) => {
 
             // if i is even vs. if i is odd
             if (i % 2 == 0) {
-                type = String.fromCharCode(type + unicodeStart)
+                type = type + unicodeStart
                 rotation = i * 45
             } else {
-                type = String.fromCharCode(type + unicodeStart + 8)
+                type = type + unicodeStart + 8
                 rotation = i * 45 - 45
             }
-
-            // where does the i sit
-            rotation = i
 
             // push to arr with type, even and deg
             arr.push([type, rotation])
@@ -100,27 +116,12 @@ const numToPiece = (num) => {
 
     })
 
+    if (arr.length == 1) {
+        arr.push([arr[0][0], (arr[0][1] + 180) % 360])
+    }
+
     // return the array
     return arr
-}
-
-
-// returns and array of 2 elements:
-// 0th index is the unicode code for the piece, 1st index is the rotation in degrees
-const getUnicodeString = (arr) => {
-    arr.forEach((el) => {
-
-    })
-}
-
-
-// check if in bounds, if true return value at indices else return 0
-const boardAtPos = (x, y) => {
-    if (((x >= 0) && (x < board.length)) && ((y >= 0) && (y < board[0].length))) {
-        return board[x][y]
-    } else {
-        return 0
-    }
 }
 
 
@@ -223,7 +224,8 @@ let moving = () => {
         }
 
         if (prevSquareX != curSquareX || prevSquareY != curSquareY) {
-            updateBoard(curSquareX, curSquareY, prevSquareX, prevSquareY)
+            updateBoard(curSquareX, curSquareY)
+            updateBoard(prevSquareX, prevSquareY)
         }
 
         prevSquareX = curSquareX
@@ -239,25 +241,26 @@ let moving = () => {
 }
 
 // takes the current and past position and updates both the visual and the js board
-const updateBoard = (x, y, px, py) => {
+const updateBoard = (x, y) => {
     console.log('update board')
-    console.log(`x: ${x}\ny: ${y}\npx: ${px}\npy: ${py}`)
+    console.log(`x: ${x}\ny: ${y}`)
 
-    board[curSquareX][curSquareY] = 1
-    let squareDOM = boardElementMain.querySelector(`.board_row:nth-child(${curSquareY + 1}) .board_col:nth-child(${curSquareX + 1})`)
+    board[x][y] = 1
+    let squareDOM = boardElementMain.querySelector(`.board_row:nth-child(${y + 1}) .board_col:nth-child(${x + 1})`)
     squareDOM.innerHTML = ''
-    let squareContent = document.createElement('p')
-    squareContent.classList.add('board_content')
-    squareContent.textContent = '1'
-    squareDOM.append(squareContent)
+    console.log(getPositionNum(x, y))
+    numToPiece(getPositionNum(x, y)).forEach(el => {
+        let squareContent = document.createElement('p')
+        squareContent.classList.add('board_content')
+        squareContent.textContent = String.fromCharCode(el[0])
+        squareContent.style.transform = `rotate(${el[1]}deg)`
+        squareDOM.append(squareContent)
+    })
 
-    //console.log(`curSquareX: ${curSquareX}\ncurSquareY: ${curSquareY}`)
-    console.log(`current position: ${numToPiece(getPositionNum(x, y))}`)
-    console.log(`previous position: ${numToPiece(getPositionNum(px, py))}`)
-        //console.log(boardAtPos(curSquareX - 1, curSquareY + 1))
+    //console.log(`current position: ${numToPiece(getPositionNum(x, y))}`)
 }
 
-let str = String.fromCharCode(48)
+let str = String.fromCharCode(72)
 console.log(str)
 
 // when user starts touching the board
@@ -360,7 +363,7 @@ const initBoard = () => {
         row.forEach((col) => {
             let colElement = document.createElement('span')
             colElement.classList.add('board_col')
-            colElement.innerHTML = '<p class="board_content">0</p>'
+            colElement.innerHTML = '<p class="board_content">2</p>'
             rowElement.append(colElement)
         })
 
