@@ -245,27 +245,32 @@ const updateBoard = (x, y) => {
     console.log('update board')
     console.log(`x: ${x}\ny: ${y}`)
 
+    // update js array to store a 1
     board[x][y] = 1
+
+    // get DOM element using x and y; nth-child() starts from 1, therefore '+1'
     let squareDOM = boardElementMain.querySelector(`.board_row:nth-child(${y + 1}) .board_col:nth-child(${x + 1})`)
+
+    // wipe the DOM element
     squareDOM.innerHTML = ''
-    console.log(getPositionNum(x, y))
-    numToPiece(getPositionNum(x, y)).forEach(el => {
-        let squareContent = document.createElement('p')
-        squareContent.classList.add('board_content')
-        squareContent.textContent = String.fromCharCode(el[0])
-        squareContent.style.transform = `rotate(${el[1]}deg)`
-        squareDOM.append(squareContent)
+
+    // recieve pieceArray using getPosition() and numToPiece ()
+    let pos = getPositionNum(x, y)
+    let pieceArray = numToPiece(pos)
+
+    // forEach value in pieceArray, create p element, do stuff, and append it back into squareDOM
+    pieceArray.forEach(el => {
+        let p = document.createElement('p')
+        p.classList.add('board_content')
+        p.textContent = String.fromCharCode(el[0])
+        p.style.transform = `rotate(${el[1]}deg)`
+        squareDOM.append(p)
     })
 
-    //console.log(`current position: ${numToPiece(getPositionNum(x, y))}`)
 }
-
-let str = String.fromCharCode(72)
-console.log(str)
 
 // when user starts touching the board
 let startOfTouch = (event, touch) => {
-
     console.log('startOfTouch')
 
     // you are dragging
