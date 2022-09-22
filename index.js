@@ -1,6 +1,10 @@
 // global variables
-const boardGrid = 20
-const boardSize = 100
+const boardGrid = 20,
+    boardSize = 100,
+    transitionDragging = 0.1,
+    transitionDraggingCubicBezier = 'cubic-bezier(.2, .8, .2, 1)',
+    transitionDraggingEnded = 0.4,
+    transitionDraggingEndedCubicBezier = 'cubic-bezier(.2, 1.3, .5, 1)'
 
 // arrays
 let board = []
@@ -20,7 +24,7 @@ let tools = {
 // DOM elements
 let boardElementMain = document.querySelector('#board_element_main')
 
-// various
+// variables
 let mousePosX, mousePosY,
     startMouseX, startMouseY,
     curTransX, curTransY,
@@ -40,15 +44,6 @@ const getPositionNum = (x, y) => {
     // create empty string
     let str = ''
 
-    // add to the string depending on where the other pieces lie
-    // boardAtPos(x - 1, y + 0) == 1 ? str += '1' : str += '0'
-    // boardAtPos(x - 1, y + 1) == 1 ? str += '1' : str += '0'
-    // boardAtPos(x + 0, y + 1) == 1 ? str += '1' : str += '0'
-    // boardAtPos(x + 1, y + 1) == 1 ? str += '1' : str += '0'
-    // boardAtPos(x + 1, y + 0) == 1 ? str += '1' : str += '0'
-    // boardAtPos(x + 1, y - 1) == 1 ? str += '1' : str += '0'
-    // boardAtPos(x + 0, y - 1) == 1 ? str += '1' : str += '0'
-    // boardAtPos(x - 1, y - 1) == 1 ? str += '1' : str += '0'
     boardAtPos(x + 0, y - 1) == 1 ? str += '1' : str += '0'
     boardAtPos(x + 1, y - 1) == 1 ? str += '1' : str += '0'
     boardAtPos(x + 1, y + 0) == 1 ? str += '1' : str += '0'
@@ -287,7 +282,7 @@ let startOfTouch = (event, touch) => {
     }
 
     // set transition to .1 when dragging
-    boardElementMain.style.transition = 'transform 0.1s cubic-bezier(.2, .8, .2, 1)'
+    boardElementMain.style.transition = `transform ${transitionDragging}s ${transitionDraggingCubicBezier}`
 
     // receive the current state of the transform before moving to new place
     curTransX = +boardElementMain.style.transform.split('(')[1].split('px')[0] // translate(10px, 20px) => 10
@@ -320,7 +315,7 @@ let endOfTouch = () => {
     let newTransPosY = Math.round(transPosY / boardSize) * boardSize
 
     // set transition to .4 when stopped
-    boardElementMain.style.transition = 'transform .4s cubic-bezier(.2, 1.3, .5, 1)'
+    boardElementMain.style.transition = `transform ${transitionDraggingEnded}s ${transitionDraggingEndedCubicBezier}`
 
     // snap board to grid
     boardElementMain.style.transform = `translate(${newTransPosX}px, ${newTransPosY}px)`
