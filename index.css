@@ -65,13 +65,11 @@ body {
 }
 
 .board_content {
-    border-bottom: 1px solid black;
-    border-right: 1px solid black;
+    outline: 1px solid black;
     grid-row: 1;
     grid-column: 1;
     font-family: 'danmarks-hundeskove';
     font-size: var(--board-size);
-    font-size: 100px;
 }
 
 .board_content,
