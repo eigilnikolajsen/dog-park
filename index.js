@@ -29,7 +29,8 @@ let mousePosX, mousePosY,
     startMouseX, startMouseY,
     curTransX, curTransY,
     transPosX, transPosY,
-    curSquareX, curSquareY,
+    curSquareX = 0,
+    curSquareY = 0,
     prevSquareX = 0,
     prevSquareY = 0,
     movingLoop,
@@ -112,6 +113,7 @@ const numToPiece = (num) => {
     })
 
     if (arr.length == 1) {
+        arr[0][0] -= 4
         arr.push([arr[0][0], (arr[0][1] + 180) % 360])
     }
 
@@ -192,18 +194,10 @@ let moving = () => {
         }
 
         // stay inside the board
-        if (transPosX > 0) {
-            transPosX = 0
-        }
-        if (transPosY > 0) {
-            transPosY = 0
-        }
-        if (transPosX < boardSize - boardSize * boardGrid) {
-            transPosX = boardSize - boardSize * boardGrid
-        }
-        if (transPosY < boardSize - boardSize * boardGrid) {
-            transPosY = boardSize - boardSize * boardGrid
-        }
+        if (transPosX > 0) transPosX = 0
+        if (transPosY > 0) transPosY = 0
+        if (transPosX < boardSize - boardSize * boardGrid) transPosX = boardSize - boardSize * boardGrid
+        if (transPosY < boardSize - boardSize * boardGrid) transPosY = boardSize - boardSize * boardGrid
 
         // finally actually perform the transform on main board element
         boardElementMain.style.transform = `translate(${transPosX}px, ${transPosY}px)`
@@ -218,9 +212,16 @@ let moving = () => {
             curSquareY = -Math.round(transPosY / boardSize)
         }
 
+        // if there square you're on changes; update board (in fact update all of the board)
         if (prevSquareX != curSquareX || prevSquareY != curSquareY) {
+            console.log('CHANGE SQUARE')
             updateBoard(curSquareX, curSquareY)
             updateBoard(prevSquareX, prevSquareY)
+            for (let i = 0; i < board.length; i++) {
+                for (let j = 0; j < board.length; j++) {
+                    if (board[i][j] == 1) updateBoard(i, j)
+                }
+            }
         }
 
         prevSquareX = curSquareX
@@ -237,8 +238,8 @@ let moving = () => {
 
 // takes the current and past position and updates both the visual and the js board
 const updateBoard = (x, y) => {
-    console.log('update board')
-    console.log(`x: ${x}\ny: ${y}`)
+    //console.log('update board')
+    //console.log(`x: ${x}\ny: ${y}`)
 
     // update js array to store a 1
     board[x][y] = 1
@@ -249,9 +250,10 @@ const updateBoard = (x, y) => {
     // wipe the DOM element
     squareDOM.innerHTML = ''
 
-    // recieve pieceArray using getPosition() and numToPiece ()
+    // recieve pieceArray using getPosition() and numToPiece()
     let pos = getPositionNum(x, y)
     let pieceArray = numToPiece(pos)
+    console.log(pieceArray)
 
     // forEach value in pieceArray, create p element, do stuff, and append it back into squareDOM
     pieceArray.forEach(el => {
@@ -311,15 +313,14 @@ let endOfTouch = () => {
     dragging = false
 
     // calc new position that snaps board to grid
-    let newTransPosX = Math.round(transPosX / boardSize) * boardSize
-    let newTransPosY = Math.round(transPosY / boardSize) * boardSize
+    let newTransPosX = -curSquareX * boardSize
+    let newTransPosY = -curSquareY * boardSize
 
     // set transition to .4 when stopped
     boardElementMain.style.transition = `transform ${transitionDraggingEnded}s ${transitionDraggingEndedCubicBezier}`
 
     // snap board to grid
     boardElementMain.style.transform = `translate(${newTransPosX}px, ${newTransPosY}px)`
-
 }
 
 
