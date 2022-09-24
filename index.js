@@ -38,8 +38,8 @@ let mousePosX, mousePosY,
     dragging
 
 
-// takes a position in the game array and turns it into a string: '11000100'
-// that can be used by numToPiece() to get an array with the correct character
+// takes a position in the board array and turns it into a string: '11000100'
+// that can be used by numToPiece() to get an array with the correct characters from the font
 const getPositionNum = (x, y) => {
 
     // create empty string
@@ -70,7 +70,7 @@ const boardAtPos = (x, y) => {
 
 
 // takes a string like this one: '11000100' and makes an array
-// that can be interpreted by *INSERT FUNCTION*
+// that can be interpreted by updateBoard
 const numToPiece = (num) => {
 
     // create empty array
@@ -119,6 +119,36 @@ const numToPiece = (num) => {
 
     // return the array
     return arr
+}
+
+
+// takes the current and past position and updates both the visual and the js board
+const updateBoard = (x, y) => {
+    //console.log('update board')
+    //console.log(`x: ${x}\ny: ${y}`)
+
+    // update js array to store a 1
+    board[x][y] = 1
+
+    // get DOM element using x and y; nth-child() starts from 1, therefore '+1'
+    let squareDOM = boardElementMain.querySelector(`.board_row:nth-child(${y + 1}) .board_col:nth-child(${x + 1})`)
+
+    // wipe the DOM element
+    squareDOM.innerHTML = ''
+
+    // recieve pieceArray using getPosition() and numToPiece()
+    let pos = getPositionNum(x, y)
+    let pieceArray = numToPiece(pos)
+
+    // forEach value in pieceArray, create p element, do stuff, and append it back into squareDOM
+    pieceArray.forEach(el => {
+        let p = document.createElement('p')
+        p.classList.add('board_content')
+        p.textContent = String.fromCharCode(el[0])
+        p.style.transform = `rotate(${el[1]}deg)`
+        squareDOM.append(p)
+    })
+
 }
 
 
@@ -212,16 +242,11 @@ let moving = () => {
             curSquareY = -Math.round(transPosY / boardSize)
         }
 
-        // if there square you're on changes; update board (in fact update all of the board)
+        // if the square you're on changes; update board (in fact update all of the board)
         if (prevSquareX != curSquareX || prevSquareY != curSquareY) {
             console.log('CHANGE SQUARE')
             updateBoard(curSquareX, curSquareY)
             updateBoard(prevSquareX, prevSquareY)
-            for (let i = 0; i < board.length; i++) {
-                for (let j = 0; j < board.length; j++) {
-                    if (board[i][j] == 1) updateBoard(i, j)
-                }
-            }
         }
 
         prevSquareX = curSquareX
@@ -233,36 +258,6 @@ let moving = () => {
         // else stop
         cancelAnimationFrame(movingLoop)
     }
-
-}
-
-// takes the current and past position and updates both the visual and the js board
-const updateBoard = (x, y) => {
-    //console.log('update board')
-    //console.log(`x: ${x}\ny: ${y}`)
-
-    // update js array to store a 1
-    board[x][y] = 1
-
-    // get DOM element using x and y; nth-child() starts from 1, therefore '+1'
-    let squareDOM = boardElementMain.querySelector(`.board_row:nth-child(${y + 1}) .board_col:nth-child(${x + 1})`)
-
-    // wipe the DOM element
-    squareDOM.innerHTML = ''
-
-    // recieve pieceArray using getPosition() and numToPiece()
-    let pos = getPositionNum(x, y)
-    let pieceArray = numToPiece(pos)
-    console.log(pieceArray)
-
-    // forEach value in pieceArray, create p element, do stuff, and append it back into squareDOM
-    pieceArray.forEach(el => {
-        let p = document.createElement('p')
-        p.classList.add('board_content')
-        p.textContent = String.fromCharCode(el[0])
-        p.style.transform = `rotate(${el[1]}deg)`
-        squareDOM.append(p)
-    })
 
 }
 
@@ -326,18 +321,20 @@ let endOfTouch = () => {
 
 // eventlisteners
 let handleMousemove = (event) => {
-    mousePosX = event.x || event.touches[0].screenX
-    mousePosY = event.y || event.touches[0].screenY
+    //mousePosX = event.x || event.touches[0].screenX
+    //mousePosY = event.y || event.touches[0].screenY
+    mousePosX = event.x
+    mousePosY = event.y
 }
 
-boardElementMain.addEventListener('mousedown', (event) => startOfTouch(event, false))
-boardElementMain.addEventListener('touchstart', (event) => startOfTouch(event, true))
+document.addEventListener('mousedown', (event) => startOfTouch(event, false))
+document.addEventListener('touchstart', (event) => startOfTouch(event, true))
 
-boardElementMain.addEventListener('mousemove', handleMousemove);
-boardElementMain.addEventListener('touchmove', handleMousemove);
+document.addEventListener('mousemove', handleMousemove);
+document.addEventListener('touchmove', handleMousemove);
 
-boardElementMain.addEventListener('mouseup', endOfTouch)
-boardElementMain.addEventListener('touchend', endOfTouch)
+document.addEventListener('mouseup', endOfTouch)
+document.addEventListener('touchend', endOfTouch)
 
 
 // run this at the start
